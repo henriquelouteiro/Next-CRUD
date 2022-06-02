@@ -3,6 +3,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 ## About the Project
 
 [EN]This project is a simple crud made with next.js and using mongoDB, to make a list of clients.
+
 [PT-BR]Esse projeto é um crud simples feito com next.js e utilizando mongoDB, para fazer uma lista de clientes.
 
 ## Getting Started
