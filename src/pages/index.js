@@ -1,23 +1,7 @@
+import {Button,Flex,Text,VStack,Table,Thead,Tbody,Box,Tr,Th,Td} from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import {
-  Button,
-  Flex,
-  Text,
-  FormControl,
-  Input,
-  FormLabel,
-  VStack,
-  Table,
-  Thead,
-  Tbody,
-  Tfoot,
-  Box,
-  Tr,
-  Th,
-  Td,
-  TableCaption,
-  TableContainer,
-} from "@chakra-ui/react";
+import { useFormik } from "formik";
+import * as yup from "yup";
 
 import { InputForm } from "../components/Input";
 import api from "../services/api";
@@ -33,33 +17,41 @@ export default function Home() {
 
   const [erros, setErros] = useState({ name: null, email: null });
 
-  const isValidFormData = () => {
-    if (!name) {
-      setErros({ name: "Nome é requirido" });
-      return false;
-    }
-    if (!email) {
-      setErros({ email: "Email é requirido" });
-      return false;
-    }
-
-    if (clients.some((client) => client.email == email && client._id !== id)) {
-      setErros({ email: "Email já é utilizado" });
-      return false;
-    }
-
-    setErros({});
-    return true;
+  const formik = useFormik({
+    initialValues: {
+      nome: "",
+      email: ""
+    },
+    validationSchema: yup.object().shape({
+      nome: yup.string("Necessario preencher o campo nome.").
+        required("Necessario preencher o campo nome."),
+      email: yup.string("Necessario preencher o campo email.").
+        email("Email invalido.").
+        required("Necessario preencher o campo email."),
+      createdOn: yup.date().default(function () {
+        return new Date();
+      }),
+    }),
+    onSubmit: (values, {resetForm }) => {
+      let {nome,email} = values;
+      
+      id ? handleSubmitUpdateCliente(nome,email) : handleSubmitCreateCliente(nome,email)
+      resetForm();
+  },
+  });
+  
+  const resetFormikValues = () => {
+    formik.resetForm({
+      nome: "",
+      email: ""
+    });
   };
 
-  const handleSubmitCreateCliente = async (e) => {
-    e.preventDefault();
-
-    if (!isValidFormData()) return;
+  const handleSubmitCreateCliente = async (name, email) => {
 
     try {
       setIsLoading(true);
-      const response = await api.post("/clients", { name, email });
+      const response = await api.post("/clients", { name , email });
 
       setClients(
         clients.concat({
@@ -68,8 +60,7 @@ export default function Home() {
           email,
         })
       );
-      setName("");
-      setEmail("");
+
       toggleFormState();
       setIsLoading(false);
     } catch (err) {
@@ -77,10 +68,7 @@ export default function Home() {
     }
   };
 
-  const handleSubmitUpdateCliente = async (e) => {
-    e.preventDefault();
-
-    if (!isValidFormData()) return;
+  const handleSubmitUpdateCliente = async (name,email) => {
 
     try {
       setIsLoading(true);
@@ -92,8 +80,6 @@ export default function Home() {
       );
 
       setId(null);
-      setName("");
-      setEmail("");
       toggleFormState();
       setIsLoading(false);
     } catch (err) {
@@ -103,8 +89,8 @@ export default function Home() {
 
   const handleShowUpdateClienteForm = (client) => {
     setId(client._id);
-    setName(client.name);
-    setEmail(client.email);
+    formik.setValues({nome: client.name,email: client.email}) 
+    
     setIsFormOpen(true);
   };
   const handleDeleteCliente = async (_id) => {
@@ -136,6 +122,7 @@ export default function Home() {
     });
   }, []);
 
+
   return (
     <Box margin="1rem">
       <Flex color="white" justifyContent="space-between" margin="4">
@@ -151,23 +138,25 @@ export default function Home() {
         <VStack
           margin="1rem"
           as="form"
-          onSubmit={id ? handleSubmitUpdateCliente : handleSubmitCreateCliente}
-        >
+          onSubmit={formik.handleSubmit}
+                 >
           <InputForm
             name="nome"
             label="Nome"
             type="text"
-            value={name}
-            onChange={(e) => handleChangeName(e.target.value)}
-            error={erros.name}
+            value={formik.values.nome}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.nome && formik.errors.nome}
           />
           <InputForm
             name="email"
             label="Email"
             type="email"
-            error={erros.email}
-            value={email}
-            onChange={(e) => handleChangeEmail(e.target.value)}
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.touched.email && formik.errors.email}
           />
 
           <Button
