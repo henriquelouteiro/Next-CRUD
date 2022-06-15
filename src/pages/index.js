@@ -11,11 +11,7 @@ export default function Home() {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [id, setId] = useState(null);
-
-  const [erros, setErros] = useState({ name: null, email: null });
 
   const formik = useFormik({
     initialValues: {
@@ -39,13 +35,6 @@ export default function Home() {
       resetForm();
   },
   });
-  
-  const resetFormikValues = () => {
-    formik.resetForm({
-      nome: "",
-      email: ""
-    });
-  };
 
   const handleSubmitCreateCliente = async (name, email) => {
 
@@ -102,14 +91,6 @@ export default function Home() {
     } catch (err) {
       console.log(err);
     }
-  };
-
-  const handleChangeName = (text) => {
-    setName(text);
-  };
-
-  const handleChangeEmail = (text) => {
-    setEmail(text);
   };
 
   const toggleFormState = () => {
